@@ -5074,6 +5074,188 @@ class SupportCollectionTest extends TestCase
         ], $data->all());
     }
 
+    public function testPercentageWhereReturnsNullWhenCollectionEmpty()
+    {
+        $collection = collect();
+
+        $this->assertNull($collection->percentageWhere('key', 'value'));
+    }
+
+    public function testPercentageWhereWithKeyValue()
+    {
+        $collection = collect([
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 1000
+            ],
+            [
+                'type' => 'truck',
+                'color' => 'red',
+                'price' => 3000
+            ],
+            [
+                'type' => 'car',
+                'color' => 'blue',
+                'price' => 1600
+            ],
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 3000
+            ],
+        ]);
+
+        $this->assertEquals(0.75, $collection->percentageWhere('type', 'car'));
+        $this->assertEquals(0.25, $collection->percentageWhere('type', '=', 'truck'));
+        $this->assertEquals(0.75, $collection->percentageWhere('price', '>', 1500));
+        $this->assertEquals(0.25, $collection->percentageWhere('color', '!=', 'red'));
+    }
+
+    public function testPercentageWhereWithCallback()
+    {
+        $collection = collect([
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 1000
+            ],
+            [
+                'type' => 'truck',
+                'color' => 'red',
+                'price' => 3000
+            ],
+            [
+                'type' => 'car',
+                'color' => 'blue',
+                'price' => 1600
+            ],
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 3000
+            ],
+        ]);
+
+        $this->assertEquals(0.5, $collection->percentageWhere(function ($item) {
+            return $item['type'] == 'car' && $item['color'] == 'red';
+        }));
+    }
+
+    public function testPercentageWhereNullReturnsNullForEmptyCollection()
+    {
+        $collection = collect();
+
+        $this->assertNull($collection->percentageWhereNull('key'));
+    }
+
+    public function testPercentageWhereNull()
+    {
+        $collection = collect([
+            [
+                'type' => 'car',
+                'price' => 1000
+            ],
+            [
+                'type' => 'truck',
+                'price' => 3000
+            ],
+            [
+                'type' => 'car',
+                'price' => null
+            ],
+            [
+                'type' => 'car',
+                'price' => 3000
+            ],
+        ]);
+
+        $this->assertEquals(0.25, $collection->percentageWhereNull('price'));
+    }
+
+    public function testPercentageWhereNotNullReturnsNullForEmptyCollection()
+    {
+        $collection = collect();
+
+        $this->assertNull($collection->percentageWhereNotNull('key'));
+    }
+
+    public function testPercentageWhereNotNull()
+    {
+        $collection = collect([
+            [
+                'type' => 'car',
+                'price' => 1000
+            ],
+            [
+                'type' => 'truck',
+                'price' => 3000
+            ],
+            [
+                'type' => 'car',
+                'price' => null
+            ],
+            [
+                'type' => 'car',
+                'price' => 3000
+            ],
+        ]);
+
+        $this->assertEquals(0.75, $collection->percentageWhereNotNull('price'));
+    }
+
+    public function testDistributionByWithEmptyCollection()
+    {
+        $collection = collect();
+
+        $this->assertEquals(collect(), $collection->distributionBy());
+    }
+
+    public function testDistributionBy()
+    {
+        $collection = collect([
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 1000
+            ],
+            [
+                'type' => 'truck',
+                'color' => 'red',
+                'price' => 3000
+            ],
+            [
+                'type' => 'car',
+                'color' => 'blue',
+                'price' => 1600
+            ],
+            [
+                'type' => 'car',
+                'color' => 'red',
+                'price' => 2100
+            ],
+        ]);
+
+        $this->assertEquals(
+            collect([
+                'red' => 0.75,
+                'blue' => 0.25
+            ]),
+            $collection->distributionBy('color')
+        );
+
+        $this->assertEquals(
+            collect([
+                'car-red' => 0.5,
+                'truck-red' => 0.25,
+                'car-blue' => 0.25
+            ]),
+            $collection->distributionBy(function ($item) {
+                return $item['type'].'-'.$item['color'];
+            })
+        );
+    }
+
     /**
      * Provides each collection class, respectively.
      *

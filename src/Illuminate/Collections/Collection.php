@@ -1709,4 +1709,27 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     {
         unset($this->items[$key]);
     }
+
+    public function percentageWhere($key, $operator = null, $value = null, $precision = 4): ?float
+    {
+        return $this->count() ? round($this->filter($this->operatorForWhere(...func_get_args()))->count() / $this->count(), $precision) : null;
+    }
+
+    public function percentageWhereNull($key, $precision = 4): ?float
+    {
+        return $this->count() ? round($this->whereNull($key)->count() / $this->count(), $precision) : null;
+    }
+
+    public function percentageWhereNotNull($key, $precision = 4): ?float
+    {
+        return $this->count() ? round($this->whereNotNull($key)->count() / $this->count(), $precision) : null;
+    }
+
+    public function distributionBy($distributionBy = null, $precision = 4): static
+    {
+        return $this->countBy($distributionBy)
+            ->map(function ($item) use ($precision) {
+                return round($item / $this->count(), $precision);
+            });
+    }
 }
